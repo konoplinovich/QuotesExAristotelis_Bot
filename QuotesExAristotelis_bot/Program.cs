@@ -14,14 +14,12 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace QuotesExAristotelis_bot
 {
-    public static class Configuration
-    {
-        public readonly static string BotToken = "1719707237:AAFwjCBU_Etx01lV9dj9tPHtI83b2ZrACRM";
-    }
     public static class Program
     {
         private static TelegramBotClient Bot;
         private static string _imagePath;
+        private static string _command = "/quote";
+        private static int _maxChars = 190;
         private static Collection<string> _names = new Collection<string>() { "Платон", "Сократ", "Аристотель", "Эмпедокл", "Зенон", "Диоген" };
 
         public static async Task Main()
@@ -30,15 +28,15 @@ namespace QuotesExAristotelis_bot
 
             var me = await Bot.GetMeAsync();
             Console.Title = me.Username;
-
-            _imagePath = Path.Combine(Path.GetTempPath(), "platonus.jpg");
+            
+            SetupTempFolder();
 
             Bot.OnMessage += BotOnMessageReceived;
             Bot.OnMessageEdited += BotOnMessageReceived;
             Bot.OnReceiveError += BotOnReceiveError;
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
-            Console.WriteLine($"Start listening for @{me.Username}");
+            Console.WriteLine($"Start listening for @{me.Username}. Press «Enter» to exit.");
 
             Console.ReadLine();
             Bot.StopReceiving();
@@ -48,32 +46,33 @@ namespace QuotesExAristotelis_bot
         {
             var message = messageEventArgs.Message;
 
-            Console.WriteLine($"Message from {message.From}: {message.Text}");
+            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Message from {message.Chat.Title}/{message.From}: {message.Text}");
+            else Console.WriteLine($"Message from {message.From}: {message.Text}");
 
             if (message == null || message.Type != MessageType.Text)
                 return;
 
-            switch (message.Text.Split(' ').First())
+            string[] parts = message.Text.Split(' ');
+
+            if (parts.Length < 2 || parts[0] != _command)
             {
-                // send a photo
-                case "/photo":
-                    var m = message.Text.Substring("/photo".Length + 1);
-
-                    await SendDocument(message, m);
-                    break;
-
-                default:
-                    await Usage(message);
-                    break;
+                await Usage(message);
+                return;
+            }
+            else
+            {
+                var m = message.Text.Substring(_command.Length + 1);
+                await SendDocument(message, m);
             }
 
             static async Task SendDocument(Message message, string text)
             {
                 DateTime start = DateTime.Now;
 
-                if (text.Length <= 190)
+                if (text.Length <= _maxChars)
                 {
                     text = $"«{text}»";
+                    string file = CreateNewFileName();
 
                     using (MagickImage image = new MagickImage(new MagickColor("white"), 500, 500))
                     {
@@ -87,11 +86,6 @@ namespace QuotesExAristotelis_bot
                             Width = 400, // width of text box
                         };
 
-                        using (var caption = new MagickImage($"caption:{text}", readSettingsText))
-                        {
-                            image.Composite(caption, 50, 50, CompositeOperator.Over);
-                        }
-
                         var readSettingsSignature = new MagickReadSettings
                         {
                             Font = "Font/Bitter-LightItalic.ttf",
@@ -103,14 +97,17 @@ namespace QuotesExAristotelis_bot
                             Width = 400, // width of text box
                         };
 
-                        string name = GetName();
+                        using (var caption = new MagickImage($"caption:{text}", readSettingsText))
+                        {
+                            image.Composite(caption, 50, 50, CompositeOperator.Over);
+                        }
 
-                        using (var caption = new MagickImage($"caption:{name}", readSettingsSignature))
+                        using (var caption = new MagickImage($"caption:{GetRandomPhilosopherName()}", readSettingsSignature))
                         {
                             image.Composite(caption, 50, 400, CompositeOperator.Over);
                         }
 
-                        image.Write(_imagePath);
+                        image.Write(file);
                     }
 
                     DateTime end = DateTime.Now;
@@ -119,12 +116,12 @@ namespace QuotesExAristotelis_bot
 
                     await Bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
 
-                    using var fileStream = new FileStream(_imagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    var fileName = _imagePath.Split(Path.DirectorySeparatorChar).Last();
+                    using var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    var fileName = file.Split(Path.DirectorySeparatorChar).Last();
                     await Bot.SendPhotoAsync(
                         chatId: message.Chat.Id,
-                        photo: new InputOnlineFile(fileStream, fileName),
-                        caption: interval.TotalSeconds.ToString()
+                        photo: new InputOnlineFile(fileStream, file),
+                        caption: $"{interval.TotalSeconds.ToString()} s"
                     );
                 }
                 else
@@ -134,17 +131,13 @@ namespace QuotesExAristotelis_bot
                     if (String.IsNullOrEmpty(message.From.Username)) name = $"{message.From.FirstName} {message.From.LastName}";
                     else name = message.From.Username;
 
-                    await Bot.SendTextMessageAsync(chatId: message.Chat.Id, $"Эй, {name}, многовато букв ({text.Length}), а можно всего жалких 190!");
+                    await Bot.SendTextMessageAsync(chatId: message.Chat.Id, $"Эй, {name}, многовато букв ({text.Length}), а можно всего жалких {_maxChars}!");
                 }
             }
 
             static async Task Usage(Message message)
             {
-                const string usage = "Usage:\n" +
-                                        "/inline   - send inline keyboard\n" +
-                                        "/keyboard - send custom keyboard\n" +
-                                        "/photo    - send a photo\n" +
-                                        "/request  - request location or contact";
+                string usage = $"Делать так: {_command} + текст, но не больше {_maxChars} символов.";
                 await Bot.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: usage,
@@ -161,12 +154,32 @@ namespace QuotesExAristotelis_bot
             );
         }
 
-        private static string GetName()
+        private static string GetRandomPhilosopherName()
         {
             var rand = new Random();
             int index = rand.Next(_names.Count);
 
             return _names[index];
+        }
+
+        private static void SetupTempFolder()
+        {
+            _imagePath = Path.Combine(Path.GetTempPath(), "QuotesExAristotelis_bot");
+
+            if (!Directory.Exists(_imagePath)) Directory.CreateDirectory(_imagePath);
+            else
+            {
+                foreach (var file in Directory.GetFiles(_imagePath))
+                {
+                    System.IO.File.Delete(file);
+                }
+            }
+        }
+
+        private static string CreateNewFileName()
+        {
+            Guid guid = Guid.NewGuid();
+            return Path.Combine(_imagePath, $"{guid}.jpg");
         }
     }
 }
