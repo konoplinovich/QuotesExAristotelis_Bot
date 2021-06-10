@@ -71,6 +71,8 @@ namespace QuotesExAristotelis_bot
 
                 if (text.Length <= _maxChars)
                 {
+                    text = UppercaseFirstLetter(text);
+                    
                     text = $"«{text}»";
                     string file = CreateNewFileName();
 
@@ -180,6 +182,20 @@ namespace QuotesExAristotelis_bot
         {
             Guid guid = Guid.NewGuid();
             return Path.Combine(_imagePath, $"{guid}.jpg");
+        }
+
+        public static string UppercaseFirstLetter(this string value)
+        {
+            //
+            // Uppercase the first letter in the string this extension is called on.
+            //
+            if (value.Length > 0)
+            {
+                char[] array = value.ToCharArray();
+                array[0] = char.ToUpper(array[0]);
+                return new string(array);
+            }
+            return value;
         }
     }
 }
