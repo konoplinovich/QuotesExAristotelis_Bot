@@ -46,7 +46,7 @@ namespace QuotesExAristotelis_bot
         {
             var message = messageEventArgs.Message;
 
-            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Message from {message.Chat.Title}/{message.From}: {message.Text}");
+            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Message from «{message.Chat.Title}»/{message.From}: {message.Text}");
             else Console.WriteLine($"Message from {message.From}: {message.Text}");
 
             if (message == null || message.Type != MessageType.Text)
