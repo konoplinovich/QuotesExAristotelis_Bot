@@ -28,7 +28,7 @@ namespace QuotesExAristotelis_bot
 
             var me = await Bot.GetMeAsync();
             Console.Title = me.Username;
-            
+
             SetupTempFolder();
 
             Bot.OnMessage += BotOnMessageReceived;
@@ -72,7 +72,7 @@ namespace QuotesExAristotelis_bot
                 if (text.Length <= _maxChars)
                 {
                     text = UppercaseFirstLetter(text);
-                    
+
                     text = $"«{text}»";
                     string file = CreateNewFileName();
 
