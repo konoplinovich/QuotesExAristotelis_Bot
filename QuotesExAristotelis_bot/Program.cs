@@ -78,7 +78,7 @@ namespace QuotesExAristotelis_bot
                     {
                         var readSettingsText = new MagickReadSettings
                         {
-                            Font = "Font/Bitter-Light.ttf",
+                            Font = "font/Bitter-Light.ttf",
                             FontFamily = "Bitter",
                             TextGravity = Gravity.Center,
                             BackgroundColor = MagickColors.Transparent,
@@ -88,7 +88,7 @@ namespace QuotesExAristotelis_bot
 
                         var readSettingsSignature = new MagickReadSettings
                         {
-                            Font = "Font/Bitter-LightItalic.ttf",
+                            Font = "font/Bitter-LightItalic.ttf",
                             FontFamily = "Bitter",
                             FontPointsize = 25,
                             TextGravity = Gravity.Southeast,
