@@ -12,7 +12,6 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 
-
 namespace QuotesExAristotelis_bot
 {
     public static class Program
@@ -31,7 +30,7 @@ namespace QuotesExAristotelis_bot
                 Console.WriteLine($"Environment variable TOKEN not set. Exit.");
                 Environment.Exit(2);
             }
-            
+
             Bot = new TelegramBotClient(Configuration.BotToken);
 
             var me = await Bot.GetMeAsync();
