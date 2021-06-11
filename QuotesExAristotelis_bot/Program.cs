@@ -21,6 +21,7 @@ namespace QuotesExAristotelis_bot
         private static string _imagePath;
         private static string _command = "/quote";
         private static int _maxChars = 190;
+        private static bool _IsWorking = true;
         private static Collection<string> _names = new Collection<string>() { "Платон", "Сократ", "Аристотель", "Эмпедокл", "Зенон", "Диоген" };
 
         public static async Task Main()
@@ -41,7 +42,7 @@ namespace QuotesExAristotelis_bot
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}. Press «Enter» to exit.");
 
-            while (true)
+            while (_IsWorking)
             {
                 await Task.Delay(1000);
             }
@@ -49,8 +50,11 @@ namespace QuotesExAristotelis_bot
 
         private static void MethodInvokedOnSigTerm(AssemblyLoadContext obj)
         {
-            Bot.StopReceiving();
-            System.Environment.Exit(40);
+	    Console.WriteLine("STOP");
+            _IsWorking = false;
+            Console.WriteLine("_isWorking = false");
+Bot.StopReceiving();
+Console.WriteLine("Bot.StopReceiving()");
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
