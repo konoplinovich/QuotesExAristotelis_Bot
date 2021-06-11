@@ -38,7 +38,9 @@ namespace QuotesExAristotelis_bot
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}. Press «Enter» to exit.");
 
-            Console.ReadLine();
+//            Console.ReadLine();
+
+	    while(true){await Task.Delay(1000);}
             Bot.StopReceiving();
         }
 

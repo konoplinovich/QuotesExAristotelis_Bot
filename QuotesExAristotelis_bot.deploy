@@ -1,0 +1,5 @@
+#!/bin/sh
+sudo cp /home/bots/QuotesExAristotelis_Bot/QuotesExAristotelis_bot.service /etc/systemd/system/QuotesExAristotelis_bot.service
+systemctl daemon-reload
+systemctl restart QuotesExAristotelis_bot
+
