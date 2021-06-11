@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -35,13 +36,21 @@ namespace QuotesExAristotelis_bot
             Bot.OnMessageEdited += BotOnMessageReceived;
             Bot.OnReceiveError += BotOnReceiveError;
 
+            AssemblyLoadContext.Default.Unloading += MethodInvokedOnSigTerm;
+
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}. Press «Enter» to exit.");
 
-//            Console.ReadLine();
+            while (true)
+            {
+                await Task.Delay(1000);
+            }
+        }
 
-	    while(true){await Task.Delay(1000);}
+        private static void MethodInvokedOnSigTerm(AssemblyLoadContext obj)
+        {
             Bot.StopReceiving();
+            System.Environment.Exit(40);
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
