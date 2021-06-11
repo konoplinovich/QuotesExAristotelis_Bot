@@ -46,7 +46,7 @@ namespace QuotesExAristotelis_bot
             AssemblyLoadContext.Default.Unloading += MethodInvokedOnSigTerm;
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
-            Console.WriteLine($"Start listening for @{me.Username}.");
+            Console.WriteLine($"Start listening for @{me.Username}");
 
             while (_IsWorking)
             {
@@ -56,10 +56,10 @@ namespace QuotesExAristotelis_bot
 
         private static void MethodInvokedOnSigTerm(AssemblyLoadContext obj)
         {
-            Console.WriteLine("SigTerm handled.");
+            Console.WriteLine("SigTerm handled");
             _IsWorking = false;
             Bot.StopReceiving();
-            Console.WriteLine("Stop listening, exit.");
+            Console.WriteLine("Stop listening, exit");
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -145,6 +145,9 @@ namespace QuotesExAristotelis_bot
                         photo: new InputOnlineFile(fileStream, file),
                         caption: $"{interval.TotalSeconds.ToString()} s"
                     );
+
+                    if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
+                    else Console.WriteLine($"Send pictures {fileName} to {message.From}");
                 }
                 else
                 {
@@ -154,6 +157,8 @@ namespace QuotesExAristotelis_bot
                     else name = message.From.Username;
 
                     await Bot.SendTextMessageAsync(chatId: message.Chat.Id, $"Эй, {name}, многовато букв ({text.Length}), а можно всего жалких {_maxChars}!");
+
+                    Console.WriteLine($"Too many chars from {message.From}");
                 }
             }
 
@@ -165,6 +170,8 @@ namespace QuotesExAristotelis_bot
                     text: usage,
                     replyMarkup: new ReplyKeyboardRemove()
                 );
+
+                Console.WriteLine($"Sent help to {message.From}");
             }
         }
 
