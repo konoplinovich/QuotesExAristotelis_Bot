@@ -14,7 +14,7 @@ namespace QuotesExAristotelis_bot
                 string token = Environment.GetEnvironmentVariable("TOKEN");
                 BotToken = token;
             }
-            catch()
+            catch
             {
                 BotToken = "";
             }
