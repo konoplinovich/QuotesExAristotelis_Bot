@@ -26,6 +26,12 @@ namespace QuotesExAristotelis_bot
 
         public static async Task Main()
         {
+            if (String.IsNullOrEmpty(Configuration.BotToken))
+            {
+                Console.WriteLine($"Environment variable TOKEN not set. Exit.");
+                Environment.Exit(2);
+            }
+            
             Bot = new TelegramBotClient(Configuration.BotToken);
 
             var me = await Bot.GetMeAsync();
@@ -40,7 +46,7 @@ namespace QuotesExAristotelis_bot
             AssemblyLoadContext.Default.Unloading += MethodInvokedOnSigTerm;
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
-            Console.WriteLine($"Start listening for @{me.Username}. Press «Enter» to exit.");
+            Console.WriteLine($"Start listening for @{me.Username}.");
 
             while (_IsWorking)
             {
@@ -50,11 +56,10 @@ namespace QuotesExAristotelis_bot
 
         private static void MethodInvokedOnSigTerm(AssemblyLoadContext obj)
         {
-	    Console.WriteLine("STOP");
+            Console.WriteLine("SigTerm handled.");
             _IsWorking = false;
-            Console.WriteLine("_isWorking = false");
-Bot.StopReceiving();
-Console.WriteLine("Bot.StopReceiving()");
+            Bot.StopReceiving();
+            Console.WriteLine("Stop listening, exit.");
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
