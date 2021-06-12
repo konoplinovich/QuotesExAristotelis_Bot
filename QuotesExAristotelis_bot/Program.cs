@@ -86,7 +86,7 @@ namespace QuotesExAristotelis_bot
 
             static async Task SendDocument(Message message, string text)
             {
-                //DateTime start = DateTime.Now;
+                DateTime start = DateTime.Now;
 
                 if (text.Length <= _maxChars)
                 {
@@ -131,9 +131,9 @@ namespace QuotesExAristotelis_bot
                         image.Write(file);
                     }
 
-                    //DateTime end = DateTime.Now;
+                    DateTime end = DateTime.Now;
 
-                    //var interval = end - start;
+                    var interval = end - start;
 
                     await Bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
 
@@ -142,9 +142,9 @@ namespace QuotesExAristotelis_bot
                     await Bot.SendPhotoAsync(
                         chatId: message.Chat.Id,
                         photo: new InputOnlineFile(fileStream, file)
-                        //caption: $"{interval.TotalSeconds.ToString()} s"
                     );
 
+                    Console.WriteLine($"Picture build time = {interval.TotalSeconds.ToString()}");
                     if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
                     else Console.WriteLine($"Send pictures {fileName} to {message.From}");
                 }
