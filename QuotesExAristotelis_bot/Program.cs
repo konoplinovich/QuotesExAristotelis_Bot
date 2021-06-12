@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -10,7 +11,6 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
-
 
 namespace QuotesExAristotelis_bot
 {
@@ -20,10 +20,17 @@ namespace QuotesExAristotelis_bot
         private static string _imagePath;
         private static string _command = "/quote";
         private static int _maxChars = 190;
+        private static bool _IsWorking = true;
         private static Collection<string> _names = new Collection<string>() { "Платон", "Сократ", "Аристотель", "Эмпедокл", "Зенон", "Диоген" };
 
         public static async Task Main()
         {
+            if (String.IsNullOrEmpty(Configuration.BotToken))
+            {
+                Console.WriteLine($"Environment variable TOKEN not set. Exit.");
+                Environment.Exit(2);
+            }
+
             Bot = new TelegramBotClient(Configuration.BotToken);
 
             var me = await Bot.GetMeAsync();
@@ -35,11 +42,23 @@ namespace QuotesExAristotelis_bot
             Bot.OnMessageEdited += BotOnMessageReceived;
             Bot.OnReceiveError += BotOnReceiveError;
 
-            Bot.StartReceiving(Array.Empty<UpdateType>());
-            Console.WriteLine($"Start listening for @{me.Username}. Press «Enter» to exit.");
+            AssemblyLoadContext.Default.Unloading += MethodInvokedOnSigTerm;
 
-            Console.ReadLine();
+            Bot.StartReceiving(Array.Empty<UpdateType>());
+            Console.WriteLine($"Start listening for @{me.Username}");
+
+            while (_IsWorking)
+            {
+                await Task.Delay(1000);
+            }
+        }
+
+        private static void MethodInvokedOnSigTerm(AssemblyLoadContext obj)
+        {
+            Console.WriteLine("SigTerm handled");
+            _IsWorking = false;
             Bot.StopReceiving();
+            Console.WriteLine("Stop listening, exit");
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -125,6 +144,9 @@ namespace QuotesExAristotelis_bot
                         photo: new InputOnlineFile(fileStream, file)
                         //caption: $"{interval.TotalSeconds.ToString()} s"
                     );
+
+                    if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
+                    else Console.WriteLine($"Send pictures {fileName} to {message.From}");
                 }
                 else
                 {
@@ -134,6 +156,8 @@ namespace QuotesExAristotelis_bot
                     else name = message.From.Username;
 
                     await Bot.SendTextMessageAsync(chatId: message.Chat.Id, $"Эй, {name}, многовато букв ({text.Length}), а можно всего жалких {_maxChars}!");
+
+                    Console.WriteLine($"Too many chars from {message.From}");
                 }
             }
 
@@ -145,6 +169,8 @@ namespace QuotesExAristotelis_bot
                     text: usage,
                     replyMarkup: new ReplyKeyboardRemove()
                 );
+
+                Console.WriteLine($"Sent help to {message.From}");
             }
         }
 
