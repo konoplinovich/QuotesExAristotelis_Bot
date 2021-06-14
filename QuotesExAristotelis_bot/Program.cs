@@ -21,7 +21,17 @@ namespace QuotesExAristotelis_bot
         private static string _command = "/quote";
         private static int _maxChars = 190;
         private static bool _IsWorking = true;
-        private static Collection<string> _names = new Collection<string>() { "Платон", "Сократ", "Аристотель", "Эмпедокл", "Зенон", "Диоген" };
+        private static Collection<string> _names = new Collection<string>()
+        { "Алкмеон Кротонский", "Анаксарх", "Анахарсис", "Андрокид", "Аристоксен", "Аристотель",
+            "Аркесилай", "Архит Тарентский", "Асклепиад из Флиунта", "Гермипп", "Гермоген", "Гестией Перинфский",
+            "Гиппас из Метапонта", "Гиппий Элидский", "Горгий", "Дамон из Афин", "Дикеарх",
+            "Дионисий Кассий Лонгин", "Диотима", "Евдем Родосский", "Евдокс Книдский",
+            "Евклид из Мегары", "Исократ", "Калликл", "Кебет", "Клеарх", "Кратил",
+            "Ксениад", "Ксенократ Халкидонский", "Ксенофан", "Левкипп", "Метродор из Лампсака",
+            "Метродор Хиосский", "Навсифан", "Платон", "Поликрат", "Продик", "Протагор", "Псевдо-Лонгин",
+            "Симмий", "Сократ", "Спевсипп", "Терпсион", "Тисий", "Троил", "Фаний Эресский", "Федон из Элиды",
+            "Филолай", "Флавий Тавр Селевк Кир", "Фрасимах", "Эмпедокл", "Эпихарм", "Эсхин из Сфетта", "Эхекрат"
+        };
 
         public static async Task Main()
         {
@@ -65,23 +75,23 @@ namespace QuotesExAristotelis_bot
         {
             var message = messageEventArgs.Message;
 
-            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Message from «{message.Chat.Title}»/{message.From}: {message.Text}");
-            else Console.WriteLine($"Message from {message.From}: {message.Text}");
+            LogMessage(message);
 
             if (message == null || message.Type != MessageType.Text)
                 return;
 
             string[] parts = message.Text.Split(' ');
 
-            if (parts.Length < 2 || parts[0] != _command)
+            if (parts.Length < 2)
             {
                 await Usage(message);
                 return;
             }
-            else
+
+            if (parts[0] == _command)
             {
-                var m = message.Text.Substring(_command.Length + 1);
-                await SendDocument(message, m);
+                var text = message.Text.Substring(_command.Length + 1);
+                await SendDocument(message, text);
             }
 
             static async Task SendDocument(Message message, string text)
@@ -90,33 +100,13 @@ namespace QuotesExAristotelis_bot
 
                 if (text.Length <= _maxChars)
                 {
-                    text = UppercaseFirstLetter(text);
-
-                    text = $"«{text}»";
+                    text = $"«{UppercaseFirstLetter(text)}»";
                     string file = CreateNewFileName();
 
                     using (MagickImage image = new MagickImage(new MagickColor("white"), 500, 500))
                     {
-                        var readSettingsText = new MagickReadSettings
-                        {
-                            Font = "font/Bitter-Light.ttf",
-                            FontFamily = "Bitter",
-                            TextGravity = Gravity.Center,
-                            BackgroundColor = MagickColors.Transparent,
-                            Height = 350, // height of text box
-                            Width = 400, // width of text box
-                        };
-
-                        var readSettingsSignature = new MagickReadSettings
-                        {
-                            Font = "font/Bitter-LightItalic.ttf",
-                            FontFamily = "Bitter",
-                            FontPointsize = 25,
-                            TextGravity = Gravity.Southeast,
-                            BackgroundColor = MagickColors.Transparent,
-                            Height = 50, // height of text box
-                            Width = 400, // width of text box
-                        };
+                        MagickReadSettings readSettingsText = CreateTextSetings();
+                        MagickReadSettings readSettingsSignature = CreateSignatureSettings();
 
                         using (var caption = new MagickImage($"caption:{text}", readSettingsText))
                         {
@@ -144,9 +134,7 @@ namespace QuotesExAristotelis_bot
                         photo: new InputOnlineFile(fileStream, file)
                     );
 
-                    Console.WriteLine($"Picture build time = {interval.TotalSeconds.ToString()}");
-                    if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
-                    else Console.WriteLine($"Send pictures {fileName} to {message.From}");
+                    LogPicture(message, interval, fileName);
                 }
                 else
                 {
@@ -172,6 +160,48 @@ namespace QuotesExAristotelis_bot
 
                 Console.WriteLine($"Sent help to {message.From}");
             }
+        }
+
+        private static MagickReadSettings CreateSignatureSettings()
+        {
+            var readSettingsSignature = new MagickReadSettings
+            {
+                Font = "font/Bitter-LightItalic.ttf",
+                FontFamily = "Bitter",
+                FontPointsize = 25,
+                TextGravity = Gravity.Southeast,
+                BackgroundColor = MagickColors.Transparent,
+                Height = 50, // height of text box
+                Width = 400, // width of text box
+            };
+            return readSettingsSignature;
+        }
+
+        private static MagickReadSettings CreateTextSetings()
+        {
+            var readSettingsText = new MagickReadSettings
+            {
+                Font = "font/Bitter-Light.ttf",
+                FontFamily = "Bitter",
+                TextGravity = Gravity.Center,
+                BackgroundColor = MagickColors.Transparent,
+                Height = 350, // height of text box
+                Width = 400, // width of text box
+            };
+            return readSettingsText;
+        }
+
+        private static void LogPicture(Message message, TimeSpan interval, string fileName)
+        {
+            Console.WriteLine($"Picture build time = {interval.TotalSeconds.ToString()}");
+            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
+            else Console.WriteLine($"Send pictures {fileName} to {message.From}");
+        }
+
+        private static void LogMessage(Message message)
+        {
+            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Message from «{message.Chat.Title}»/{message.From}: {message.Text}");
+            else Console.WriteLine($"Message from {message.From}: {message.Text}");
         }
 
         private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
