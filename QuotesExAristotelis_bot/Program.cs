@@ -88,10 +88,17 @@ namespace QuotesExAristotelis_bot
                 return;
             }
 
-            if (parts[0] == _command)
+            string recivedCommand = parts[0];
+            string recivedText = parts[1];
+
+            if (recivedCommand.IndexOf("@") != -1)
             {
-                var text = message.Text.Substring(_command.Length + 1);
-                await SendDocument(message, text);
+                recivedCommand = recivedCommand.Substring(0, recivedCommand.IndexOf("@"));
+            }
+            
+            if (recivedCommand == _command)
+            {
+                await SendDocument(message, recivedText);
             }
 
             static async Task SendDocument(Message message, string text)

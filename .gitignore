@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+QuotesExAristotelis_bot/Properties/launchSettings.json
