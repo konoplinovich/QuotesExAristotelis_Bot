@@ -207,8 +207,8 @@ namespace QuotesExAristotelis_bot
 
         private static void LogMessage(Message message)
         {
-            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Message from «{message.Chat.Title}»/{message.From}: {message.Text}");
-            else Console.WriteLine($"[R] Message from {message.From}: {message.Text}");
+            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"[M] Message from «{message.Chat.Title}»/{message.From}: {message.Text}");
+            else Console.WriteLine($"[M] Message from {message.From}: {message.Text}");
         }
 
         private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
