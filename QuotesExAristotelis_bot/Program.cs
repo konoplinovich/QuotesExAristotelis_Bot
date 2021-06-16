@@ -89,13 +89,13 @@ namespace QuotesExAristotelis_bot
             }
 
             string recivedCommand = parts[0];
-            string recivedText = parts[1];
+            string recivedText = message.Text.Substring(parts[0].Length + 1);
 
             if (recivedCommand.IndexOf("@") != -1)
             {
                 recivedCommand = recivedCommand.Substring(0, recivedCommand.IndexOf("@"));
             }
-            
+
             if (recivedCommand == _command)
             {
                 await SendDocument(message, recivedText);
