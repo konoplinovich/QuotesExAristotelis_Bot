@@ -37,7 +37,7 @@ namespace QuotesExAristotelis_bot
         {
             if (String.IsNullOrEmpty(Configuration.BotToken))
             {
-                Console.WriteLine($"Environment variable TOKEN not set. Exit.");
+                Console.WriteLine($"[E] Environment variable TOKEN not set. Exit.");
                 Environment.Exit(2);
             }
 
@@ -55,7 +55,7 @@ namespace QuotesExAristotelis_bot
             AssemblyLoadContext.Default.Unloading += MethodInvokedOnSigTerm;
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
-            Console.WriteLine($"Start listening for @{me.Username}");
+            Console.WriteLine($"[S] Start listening for @{me.Username}");
 
             while (_IsWorking)
             {
@@ -65,10 +65,10 @@ namespace QuotesExAristotelis_bot
 
         private static void MethodInvokedOnSigTerm(AssemblyLoadContext obj)
         {
-            Console.WriteLine("SigTerm handled");
+            Console.WriteLine("[T] SigTerm handled");
             _IsWorking = false;
             Bot.StopReceiving();
-            Console.WriteLine("Stop listening, exit");
+            Console.WriteLine("[T] Stop listening, exit");
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -152,7 +152,7 @@ namespace QuotesExAristotelis_bot
 
                     await Bot.SendTextMessageAsync(chatId: message.Chat.Id, $"Эй, {name}, многовато букв ({text.Length}), а можно всего жалких {_maxChars}!");
 
-                    Console.WriteLine($"Too many chars from {message.From}");
+                    Console.WriteLine($"[E] Too many chars from {message.From}");
                 }
             }
 
@@ -165,7 +165,7 @@ namespace QuotesExAristotelis_bot
                     replyMarkup: new ReplyKeyboardRemove()
                 );
 
-                Console.WriteLine($"Sent help to {message.From}");
+                Console.WriteLine($"[H] Sent help to {message.From}");
             }
         }
 
@@ -200,20 +200,20 @@ namespace QuotesExAristotelis_bot
 
         private static void LogPicture(Message message, TimeSpan interval, string fileName)
         {
-            Console.WriteLine($"Picture build time = {interval.TotalSeconds.ToString()}");
+            Console.WriteLine($"[P] Picture build time = {interval.TotalSeconds.ToString()}");
             if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
-            else Console.WriteLine($"Send pictures {fileName} to {message.From}");
+            else Console.WriteLine($"[P] Send pictures {fileName} to {message.From}");
         }
 
         private static void LogMessage(Message message)
         {
             if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Message from «{message.Chat.Title}»/{message.From}: {message.Text}");
-            else Console.WriteLine($"Message from {message.From}: {message.Text}");
+            else Console.WriteLine($"[R] Message from {message.From}: {message.Text}");
         }
 
         private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
         {
-            Console.WriteLine("Received error: {0} — {1}",
+            Console.WriteLine("[E] Received error: {0} — {1}",
                 receiveErrorEventArgs.ApiRequestException.ErrorCode,
                 receiveErrorEventArgs.ApiRequestException.Message
             );
@@ -249,9 +249,6 @@ namespace QuotesExAristotelis_bot
 
         public static string UppercaseFirstLetter(this string value)
         {
-            //
-            // Uppercase the first letter in the string this extension is called on.
-            //
             if (value.Length > 0)
             {
                 char[] array = value.ToCharArray();
