@@ -201,7 +201,7 @@ namespace QuotesExAristotelis_bot
         private static void LogPicture(Message message, TimeSpan interval, string fileName)
         {
             Console.WriteLine($"[P] Picture build time = {interval.TotalSeconds.ToString()}");
-            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
+            if (!String.IsNullOrEmpty(message.Chat.Title)) Console.WriteLine($"[P] Send pictures {fileName} to «{message.Chat.Title}»/{message.From}");
             else Console.WriteLine($"[P] Send pictures {fileName} to {message.From}");
         }
 
