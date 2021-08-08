@@ -82,7 +82,7 @@ namespace QuotesExAristotelis_bot
             }
 
             string recivedCommand = parts[0];
-            string recivedText = message.Text.Substring(parts[0].Length + 1);
+            string recivedText = message.Text.Substring(parts[0].Length + 1).Trim();
 
             if (recivedCommand.IndexOf("@") != -1)
             {
