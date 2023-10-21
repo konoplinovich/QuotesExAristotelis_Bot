@@ -77,7 +77,14 @@ namespace QuotesExAristotelis_bot
 
         private static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            var message = update.Message;
+            // Only process Message updates: https://core.telegram.org/bots/api#message
+            if (update.Message is not { } message)
+                return;
+            // Only process text messages
+            if (message.Text is not { } messageText)
+                return;
+
+            message = update.Message;
 
             LogMessage(message);
 
