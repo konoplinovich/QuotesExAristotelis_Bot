@@ -4,13 +4,14 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.Loader;
+using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
-using Telegram.Bot.Args;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Exceptions;
 
 namespace QuotesExAristotelis_bot
 {
@@ -21,8 +22,9 @@ namespace QuotesExAristotelis_bot
         private static string _command = "/quote";
         private static int _maxChars = 190;
         private static bool _IsWorking = true;
+        private static CancellationTokenSource _cts;
         private static Collection<string> _names = new Collection<string>()
-        {  
+        {
             "Аристотель", "Гермоген", "Дикеарх", "Евклид из Мегары", "Платон", "Сократ", "Эмпедокл", "Коко Шанель"
         };
 
@@ -41,13 +43,22 @@ namespace QuotesExAristotelis_bot
 
             SetupTempFolder();
 
-            Bot.OnMessage += BotOnMessageReceived;
-            Bot.OnMessageEdited += BotOnMessageReceived;
-            Bot.OnReceiveError += BotOnReceiveError;
+            using CancellationTokenSource _cts = new();
+
+            ReceiverOptions receiverOption = new()
+            {
+                AllowedUpdates = Array.Empty<UpdateType>()
+            };
+
+            Bot.StartReceiving(
+                updateHandler: HandleUpdateAsync,
+                pollingErrorHandler: HandlePollingErrorAsync,
+                receiverOptions: receiverOption,
+                cancellationToken: _cts.Token
+                );
 
             AssemblyLoadContext.Default.Unloading += MethodInvokedOnSigTerm;
 
-            Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"[S] Start listening for @{me.Username}");
 
             while (_IsWorking)
@@ -60,13 +71,13 @@ namespace QuotesExAristotelis_bot
         {
             Console.WriteLine("[T] SigTerm handled");
             _IsWorking = false;
-            Bot.StopReceiving();
+            _cts.Cancel();
             Console.WriteLine("[T] Stop listening, exit");
         }
 
-        private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        private static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            var message = messageEventArgs.Message;
+            var message = update.Message;
 
             LogMessage(message);
 
@@ -131,7 +142,7 @@ namespace QuotesExAristotelis_bot
                     var fileName = file.Split(Path.DirectorySeparatorChar).Last();
                     await Bot.SendPhotoAsync(
                         chatId: message.Chat.Id,
-                        photo: new InputOnlineFile(fileStream, file)
+                        photo: new InputFileStream(fileStream, file)
                     );
 
                     LogPicture(message, interval, fileName);
@@ -204,12 +215,17 @@ namespace QuotesExAristotelis_bot
             else Console.WriteLine($"[M] Message from {message.From}: {message.Text}");
         }
 
-        private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
+        private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            Console.WriteLine("[E] Received error: {0} — {1}",
-                receiveErrorEventArgs.ApiRequestException.ErrorCode,
-                receiveErrorEventArgs.ApiRequestException.Message
-            );
+            var ErrorMessage = exception switch
+            {
+                ApiRequestException apiRequestException
+                    => $"[E] Received error: {apiRequestException.ErrorCode} — {apiRequestException.Message}",
+                _ => exception.ToString()
+            };
+
+            Console.WriteLine(ErrorMessage);
+            return Task.CompletedTask;
         }
 
         private static string GetRandomPhilosopherName()
