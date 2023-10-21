@@ -43,8 +43,7 @@ namespace QuotesExAristotelis_bot
 
             SetupTempFolder();
 
-//            using CancellationTokenSource 
-_cts = new();
+            _cts = new();
 
             ReceiverOptions receiverOption = new()
             {
